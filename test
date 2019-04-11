@@ -1,0 +1,5 @@
+#! /bin/sh
+
+chromium --kiosk=localhost:3000 2> /dev/null &
+
+echo "hi"
