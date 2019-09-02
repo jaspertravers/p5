@@ -1,0 +1,523 @@
+function build () {
+  //centered grid
+
+  let xm = width / 2;
+  let ym = height / 2;
+  let xdim = 4;
+  let ydim = 4;
+  let margin = 10;
+
+  /*
+   *  given xdim, ydim
+   *  generate that grid centered on the middle
+   *
+   */
+
+  let cellwidth = width / xdim;
+  let cellheight = height / ydim;
+
+  s.boxs = [];
+  for (let x = 0; x < width; x += cellwidth) {
+    for (let y = 0; y < height; y += cellheight) {
+      s.boxs.push ({x: x + margin,
+                    y: y + margin,
+                    w: cellwidth - 2 * margin,
+                    h: cellheight - 2 * margin,
+                    margin: 10,
+                    lstep: 4});
+    }
+  }
+
+  // boxes created, each live in the array s.boxs as an object 
+  // with {x, y, w, h, margin}
+  // lets put a hold on this and figure out the architecture
+
+}
+
+// loop
+function sketch () {
+  s.boxs.forEach (e => rect (e.x, e.y, e.w, e.h));
+  s.boxs.forEach (e => {
+    //for (let step = 0; step < ) { }
+  });
+}
+// loop || "once but not build" if noLoop()
+function sketch () {
+  let mx = width  / 2;
+  let my = height / 2;
+  
+  //line (mx, my, mx - 100, my);
+  //line (mx, my, mx, my - 100);
+
+  let step = 5;
+  let scale = 400;
+  let n = 320;
+  let t = 1;
+  let offset = 1;
+  for (let iter = step; iter < scale; iter += step) {
+    sand (mx - scale + iter, my, mx, my - iter, n, t, offset);
+    sand (mx + scale - iter, my, mx, my + iter, n, t, offset);
+
+    //line (mx - scale + iter, my, mx, my + iter);
+    //line (mx + scale - iter, my, mx, my - iter);
+  }
+}
+
+
+/*
+ * n: number of points
+ * v: line begin
+ * w: line end
+ * t: times
+ * offset: how much each point varries per iteration
+ *
+ * //rgba: color/transparency
+ */
+
+function sand (x1, y1, x2, y2, n, t, offset) {
+  let xs = linspace (n, x1, x2);
+  let ys = linspace (n, y1, y2);
+
+  let pts = zip (xs, ys);
+
+  let points = pts.map (e => e.map (el => el + random (-offset, offset)));
+  points.forEach (e => point (e[0], e[1]));
+
+}
+
+const zip = (arr, ...arrs) => {
+  return arr.map((val, i) => arrs.reduce((a, arr) => [...a, arr[i]], [val]));
+}
+// loop
+function sketch () {
+  let paths = [];
+  let s1 = new Sand (200, 100, 800, 100, 1000, 1, 1);
+  s1.display();
+  let sgen = new SandGen (2000, 1, 4.0);
+  let path = sgen.generate (200, 110, 800, 110);
+  for (let iter = 0; iter < 400; iter += 1) {
+    paths.push ( sgen.generate(200, 200 + iter, 800, 200 + iter) );
+  }
+  paths.forEach (e => e.forEach (el => point (el[0], el[1])));
+}
+
+//what if Sand was a generator?
+
+class SandGen {
+  constructor (n, t, off) {
+    this.n = n;
+    this.t = t;
+    this.off = off;
+  }
+  generate (x1, y1, x2, y2) {
+    let xs = linspace (this.n, x1, x2);
+    let ys = linspace (this.n, y1, y2);
+    let pts = zip (xs, ys);
+
+    let mod = pts.map (e => e.map (el => el + random (-this.off, this.off)));
+
+    return mod;
+  }
+}
+
+
+class Sand {
+  constructor (x1, y1, x2, y2, n, t, off) {
+    this.xs = linspace (n, x1, x2);
+    this.ys = linspace (n, y1, y2);
+    this.pts = zip (this.xs, this.ys);
+    this.n = n;
+    this.t = t;
+    this.off = off;
+    this.modify();
+  }
+  modify () {
+    this.mod = this.pts.map (e => e.map (el => el + random (-this.off, this.off)));
+  }
+  display () {
+    this.mod.forEach (e => point (e[0], e[1]));
+  }
+}
+
+// loop
+function sketch () {
+  let my = height / 2;
+  let pts = [];
+  let paths = [];
+
+  sg = new SandGen (400, 1, 1);
+
+  for (let x = 100; x < width - 100; x += 50) {
+    pts.push (vec (x, my + random (-1, 1) * 100));
+  }
+  subdivision (pts);
+
+  pts.forEach ((e, i) => paths.push (sg.generate 
+                                      (e, pts[((i + 1 >= pts.length) ? i: i + 1)])));
+
+  paths.forEach (e => e.forEach (el => point (el[0], el[1])));
+
+}
+
+function subdivision (path) {
+  // for every segment, cut first and last 25% and create new line to next
+  // segments cuts
+  // path is of the format [p1, p2, p3,...]
+  let res = [];
+  for (let iter = 0; iter < path.length - 1; iter += 1) {
+    let p1 = path[iter]
+    let p2 = path[iter + 1]
+
+    let mx = p2.x - p1.x / 2;
+    let bx = (mx - p1.x / 2) + p1.x; //bot new x
+    let tx = (p2.x - mx / 2) + mx;   //top new x
+
+    let my = p2.y - p1.y / 2;
+    let by = (my - p1.y / 2) + p1.y; //bot new y
+    let ty = (p2.y - my / 2) + my;   //top new y
+
+    let q = vec (bx, by);
+    let r = vec (tx, ty);
+    res.push (q);
+    res.push (r);
+  }
+  drawPath (res);
+}
+
+class SandGen {
+  constructor (n, t, off) {
+    this.n = n;
+    this.t = t;
+    this.off = off;
+  }
+  generate ({x: x1, y: y1}, {x: x2, y: y2}) {
+    let xs = linspace (this.n, x1, x2);
+    let ys = linspace (this.n, y1, y2);
+    let pts = zip (xs, ys);
+
+    let mod = pts.map (e => e.map (el => el + random (-this.off, this.off)));
+
+    return mod;
+  }
+}
+
+
+var s = {}; //state
+var preset = [];
+var postset = [];
+
+//live
+  var xm;// = width / 2;
+  var hm;// = height / 2;
+  var lev = 0;
+
+
+//data structure
+//for_ (cur, cond, next, fbody)
+var ds = {
+  n: 0,
+  levels: [],
+};
+// once
+function build () {
+  let scale = 0.05;
+  for (let x = -2; x < 2; x += scale) {
+    for (let y = -2; y < 2; y += scale) {
+      preset.push (vec (x, y));
+    }
+  }
+
+  //iterative function system
+  let ifs = (alpha, beta, gamma, delta) => (p) =>
+    vec ( sin (alpha * p.y) - cos (beta  * p.x),
+          sin (gamma * p.x) - cos (delta * p.y));
+
+  let ifs1 = ifs(-2, -2, -1.2, 2);
+
+  //want to go from any depth to depth+1. Also want to store all of these dp style
+  //let level = (ds) => ds.levels[ds.n + 1];
+
+  for (let iter = 0; iter < preset.length; iter++) {
+    postset.push (ifs1 (preset[iter]));
+  }
+}
+function build1 () {
+  //init
+  console.log ("start");
+  init = (scale) => {ds.levels[ds.n] = [];
+                    for_ (-2, x => x < 2, x => x + scale, x =>
+                      for_ (-2, y => y < 2, y => y + scale, y =>
+                        ds.levels[ds.n].push(vec (x, y))));}
+
+  level = () => {ds.levels[ds.n + 1] = [];
+                ds.levels[ds.n].forEach (e => ds.levels[ds.n + 1].push (ifs1 (e))); ds.n++};
+
+  ifs = (alpha, beta, gamma, delta) => (p) =>
+    vec ( sin (alpha * p.y) - cos (beta  * p.x),
+          sin (gamma * p.x) - cos (delta * p.y)),
+
+  //ifs1 = ifs (-2, -2, -1.1, 2);
+  ifs1 = ifs (-1.214, -0.5958, -2.256, .9604);
+
+  init(0.008);
+  for (let iter = 0; iter < 9; iter++) {
+    level();
+  }
+
+}
+
+// loop
+function sketch () {
+  //let xm = width / 2;
+  //let hm = height / 2;
+  //let scale = 100;
+  //let lev = 9;
+  xm = width / 2;
+  hm = height / 2;
+  let scale = 100;
+  background(BACKGROUND);
+  //lev = (lev + 1) % 20;
+  lev = 8;
+  for (let iter = 0; iter < ds.levels[lev].length; iter++) {
+    let dot = ds.levels[lev][iter];
+    point (xm + dot.x * scale, hm + dot.y * scale);
+  }
+}
+
+function keyPressed() {
+  switch (key) {
+    case 's':
+      let time = "" + year () + "_" + month() + "_" + day() + "_" + hour() + minute() + second();
+      save (time + "_" + "sketch.png");
+      break;
+    default:
+      //console.log ("missed switch");
+  }
+}
+function setup() {
+  BACKGROUND = '#fffbf4'; //BACKGROUND = '#fcfaea';
+  STROKE = '#282828';
+  createCanvas(windowWidth - 0, windowHeight - 0);
+  background(BACKGROUND);
+  stroke(STROKE);
+  noFill();
+  //noLoop();
+  strokeWeight(1);
+
+  build();
+}
+
+function draw() {
+  sketch();
+}
+
+// once
+function build () {
+  let nscale = 0.02;
+  for (let x = 100; x < 300; x += 1) {
+    for (let y = 100; y < 300; y += 1) {
+      let val = noise (x * nscale, y * nscale);
+      if (val > .19 && val < .21) point (x, y);
+      if (val > .48 && val < .52) point (x, y);
+      if (val > .79 && val < .81) point (x, y);
+    }
+  }
+}
+
+// loop
+function sketch () {
+}
+function setup() {
+  BACKGROUND = '#fffbf4'; 
+  STROKE = '#282828';
+  createCanvas(windowWidth - 0, windowHeight - 0);
+  background(BACKGROUND);
+  stroke(STROKE);
+  noFill();
+  noLoop();
+  strokeWeight(1);
+
+  build();
+}
+
+function draw() {
+  sketch();
+}
+
+// once
+function build () {
+  //for (let iter = 0; iter < 4; iter++) { lbox (40, 40 + 100 * iter, 100); }
+
+  drawPath (sand (100, 100, 200, 300));
+}
+
+// loop
+function sketch () {
+}
+
+function lbox (x, y, w) {
+  let points = [];
+  points.push (sand (x + 0, y + 0, x + w, y + 0));
+  points.push (sand (x + w, y + 0, x + w, y + w));
+  points.push (sand (x + w, y + w, x + 0, y + w));
+  points.push (sand (x + 0, y + w, x + 0, y + 0));
+
+  //drawPath (points);
+}
+
+// not even remotely working
+function sand (x1, y1, x2, y2) {
+  let points = [];
+  let step = 1.0;
+  let DISTANCE = distance (x1, y1, x2, y2);
+  let dist = 0;
+
+  let xratio = 1 - (x2 - x1 != 0) ? (y2 - y1) / (x2 - x1) : 0;
+  let yratio = 1 - xratio;
+
+  let x = x1;
+  let y = y1;
+
+  while (dist < DISTANCE) {
+    x += step * xratio;
+    y += step * yratio;
+    points.push (vec (x,y));
+    dist += step;
+  }
+
+  return points;
+}
+
+function distance (x1, y1, x2, y2) {
+  return sqrt (Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+}
+
+var feed;
+// once
+function build () {
+  feed = newFeed();
+}
+
+function BG () {
+  let xstep = 10;
+  let ystep = 10;
+  for (let x = xstep; x < width; x += xstep) {
+    for (let y = ystep; y < height; y += ystep) {
+      point (x, y);
+    }
+  }
+}
+
+// loop
+function sketch () {
+  background ('#fffbf4')
+  BG();
+}
+
+function mouseClicked() {
+  feed.add (vec (mouseX, mouseY));
+}
+
+function newFeed () {
+  const points = [];
+  const lines = [];
+  return {
+    add: (p) => {
+      points.push {p: p}
+      this.update()
+    }
+    update: () => {
+      while (points.length > 2) {
+        lines.push (
+          {
+            p1: points.shift(), p2: points.shift()
+          }
+      )
+      }
+    }
+  }
+}
+
+///
+
+const altStack = () => {
+  const items = [];
+  return {
+    depth: () => items.length,
+    top:   () => items[items.length - 1],
+    pop:   () => { items.pop() },
+    push: item => { items.push(item) }
+  }
+}
+function setup() {
+  BACKGROUND = '#fffbf4'; //BACKGROUND = '#fcfaea';
+  STROKE = '#282828';
+  createCanvas(windowWidth - 0, windowHeight - 0);
+  background(BACKGROUND);
+  stroke(STROKE);
+  noFill();
+  //noLoop();
+  strokeWeight(1);
+  colorMode(HSB)
+
+  build();
+}
+
+function draw() {
+  sketch();
+}
+
+// once
+function build () {
+  line (0, 100, width, 100);
+  line (100, 0, 100, height);
+
+  line (0, 95, width, 95);
+  line (95, 0, 95, height);
+
+  line (0, 100, 100, 200);
+  line (100, 0, 200, 100);
+
+  for (let x = 100; x < 300; x += 1) {
+    for (let y = 100; y < 300; y+= 1) {
+      stroke (0, map (x, 100, 300, 0, 100), map (y, 100, 300, 0, 100));
+      point (x, y);
+    }
+  }
+}
+
+// loop
+function sketch () {
+}
+function setup() {
+  BACKGROUND = '#fffbf4'; //BACKGROUND = '#fcfaea';
+  STROKE = '#282828';
+  createCanvas(windowWidth - 0, windowHeight - 0);
+  background(BACKGROUND);
+  stroke(STROKE);
+  noFill();
+  noLoop();
+  strokeWeight(1);
+
+  build();
+}
+
+function draw() {
+  sketch();
+}
+
+// once
+function build () {
+  let step = 35;
+  let pts = [];
+  for (let x = (width % step) / 2; x <= width; x += step) {
+    for (let y = (height % step) / 2; y <= height; y += step) {
+      pts.push (vec (x, y));
+    }
+  }
+
+}
+
+// loop
+function sketch () {
+}

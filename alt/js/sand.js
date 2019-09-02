@@ -1,23 +1,14 @@
 var s = {}; //state
 
-let myFont;
-
-function preload() {
-  myFont = loadFont('includes/assets/et-book-roman-line-figures.ttf');
-}
-
-
 function setup() {
   BACKGROUND = '#fffbf4'; //BACKGROUND = '#fcfaea';
   STROKE = '#282828';
   createCanvas(windowWidth - 0, windowHeight - 0);
   background(BACKGROUND);
-  stroke(STROKE);
+  stroke(40, 40, 40, 80);
   noFill();
   noLoop();
   strokeWeight(1);
-  textFont (myFont);
-  textSize (16);
   colorMode (HSB, 100); //change color from RGB to HSB
 
   build();
@@ -29,23 +20,14 @@ function draw() {
 
 // once
 function build () {
-  {n: 400,
-   t: 3,
-   offset: 0.80
-  }
-  s.n = 400;
-  s.t = 3;
-  s.offset = 0.80;
+  s.n = 200;
+  s.t = 16;
+  s.offset = 0.20;
 }
 
 // loop
 function sketch () {
   background(BACKGROUND);
-
-  text ("n: " + s.n, 20, 30);
-  text ("t: " + s.t, 20, 50);
-  text ("offset: " + s.offset, 20, 70);
-
 
   let y = height / 4;
   let BARS = 160;
@@ -59,9 +41,7 @@ function sketch () {
 
     pairs.push ([v1, v2]);
   }
-
   weave (pairs);
-
 }
 
 function weave (pairs) {
@@ -77,45 +57,6 @@ function weave (pairs) {
     let v2 = pairs[index][1];
 
     sand (n, v1, v2, t, offset);
-
-  }
-}
-
-function keyPressed() {
-  switch (keyCode) {
-    case UP_ARROW:
-      s.n += 50;
-      break;
-    case LEFT_ARROW:
-      s.t -= 1;
-      break;
-    case RIGHT_ARROW:
-      s.t += 1;
-      break;
-    case DOWN_ARROW:
-      s.n -= 50;
-      break;
-    case 79: //o
-      s.offset += 0.1;
-      break;
-    case 73: //i
-      s.offset -= 0.1;
-      break;
-    default:
-      console.log ("missed switch");
-  }
-}
-
-function wave () {
-  let x = 1 * width / 4;
-  let y = 2 * height / 4;
-  let astep = TWO_PI / 400;
-  let increment = 1;
-  let range = 400;
-  let amp = 80;
-
-  for (let step = 0, ang = 0; step < range; step += increment, ang += TWO_PI / range) {
-    point (x + step, y + sin (ang) * amp);
   }
 }
 
@@ -158,3 +99,18 @@ function sand (n, v, w, t, offset) {
  *      // includes the end values.
  *
  */
+
+/*
+function wave () {
+  let x = 1 * width / 4;
+  let y = 2 * height / 4;
+  let astep = TWO_PI / 400;
+  let increment = 1;
+  let range = 400;
+  let amp = 80;
+
+  for (let step = 0, ang = 0; step < range; step += increment, ang += TWO_PI / range) {
+    point (x + step, y + sin (ang) * amp);
+  }
+}
+*/

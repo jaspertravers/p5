@@ -1,0 +1,18 @@
+body {
+  margin: 0px;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: #fffbf4;
+}
+
+.stack {
+  position: relative;
+  border: 1px solid #FF0000;
+
+}
+
+.controls {
+  height: 80px;
+  width: 80px;
+}
